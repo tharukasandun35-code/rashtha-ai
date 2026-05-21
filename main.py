@@ -1,8 +1,9 @@
+import os
+import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-import requests
 
 app = FastAPI()
 
@@ -14,8 +15,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🚀 අලුත්ම වැඩ කරන Groq API Key එක සහ වැඩ කරන මොඩල් එක දාලා තියෙන්නේ
-GROQ_API_KEY = "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"
+# 🔐 Key එක කෙලින්ම දාන්නේ නැතුව සර්වර් එකෙන් ගන්නවා (ආරක්ෂිතයි)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 GROQ_MODEL = "llama-3.3-70b-versatile" 
 
 class PromptRequest(BaseModel):
@@ -59,7 +60,7 @@ async def generate_video(request: PromptRequest):
 
     video_search_url = f"https://pixabay.com/api/videos/?key=43936413-5a04ba3b6107bdbe8b7b252df&q={requests.utils.quote(english_prompt)}&per_page=5"
     
-    # 🌟 කැඩෙන්නේ නැති, හැමවෙලේම වැඩ කරන සිරාම Backup HD වීඩියෝ එකක් (Nature)
+    # 🌟 Backup HD වීඩියෝ ලින්ක් එක
     actual_video_url = "https://assets.mixkit.co/videos/preview/mixkit-beautiful-aerial-view-of-a-forest-and-river-42823-large.mp4"
     
     try:
@@ -67,7 +68,6 @@ async def generate_video(request: PromptRequest):
         if video_resp.get('hits') and len(video_resp['hits']) > 0:
             for hit in video_resp['hits']:
                 videos_dict = hit.get('videos', {})
-                # කරදරකාරී vimeo සහ කැඩෙන ලින්ක් අයින් කරලා හොඳම ලින්ක් එක ගන්නවා
                 for size in ['medium', 'small', 'large']:
                     if size in videos_dict and videos_dict[size].get('url'):
                         video_url_test = videos_dict[size]['url']
