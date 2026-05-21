@@ -49,7 +49,7 @@
             resultBox.style.display = 'none';
 
             try {
-                // මෙතන අලුත්ම /generate-video පාර (Path) එක නිවැරදිව දමා ඇත
+                // ✅ මෙතන /generate-video ලෙස නිවැරදි ලිපිනය දමා ඇත
                 const response = await fetch('https://tharukasandun35-rashtha-ai-backend.hf.space/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -58,6 +58,7 @@
 
                 const data = await response.json();
                 
+                // ✅ Backend එකෙන් එන video_url එක ප්ලේයර් එකට දෙනවා
                 if (data.status === "success" && data.video_url) {
                     aiVideo.src = data.video_url;
                     resultBox.style.display = 'block';
