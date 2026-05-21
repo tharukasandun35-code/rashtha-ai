@@ -1,41 +1,77 @@
-<script>
-    async function generateVideo() {
-        const promptText = document.getElementById('promptInput').value.trim();
-        if (!promptText) { alert('කරුණාකර මොනවා හරි ලියන්න!'); return; }
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rashtha AI - AI Video Generator</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background-color: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 600px; text-align: center; }
+        h1 { color: #38bdf8; margin-bottom: 5px; font-size: 2.5rem; }
+        p.subtitle { color: #94a3b8; margin-bottom: 25px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 10px; border: 2px solid #334155; background-color: #0f172a; color: #fff; font-size: 16px; resize: none; box-sizing: border-box; margin-bottom: 20px; }
+        button { background: linear-gradient(135deg, #38bdf8, #3b82f6); color: white; border: none; padding: 14px 28px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; transition: transform 0.2s; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        .result-box { margin-top: 25px; display: none; background: #0f172a; padding: 15px; border-radius: 10px; text-align: center; }
+        video { width: 100%; border-radius: 8px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .loading { display: none; color: #e2e8f0; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-        const btn = document.getElementById('generateBtn');
-        const loading = document.getElementById('loadingText');
-        const resultBox = document.getElementById('resultBox');
+    <div class="container">
+        <h1>Rashtha AI ✨</h1>
+        <p class="subtitle">ඔබට අවශ්‍ය වීඩියෝ එක සිංහලෙන් විස්තර කරන්න</p>
+        
+        <textarea id="promptInput" placeholder="උදා: ලස්සන ගඟක් සහ කැලෑවක්..."></textarea>
+        <button id="generateBtn" onclick="generateResponse()">වීඩියෝව සාදන්න</button>
+        
+        <div id="loadingText" class="loading">⏳ Rashtha AI වීඩියෝව සකසමින් පවතිී...</div>
 
-        btn.disabled = true;
-        loading.style.display = 'block';
-        resultBox.style.display = 'none';
+        <div id="resultBox" class="result-box">
+            <p style="color: #4ade80; font-weight: bold;">✨ ඔබේ වීඩියෝව සූදානම්!</p>
+            <video id="aiVideo" controls autoplay loop muted></video>
+        </div>
+    </div>
 
-        try {
-            // මෙන්න මේ පේළිය අනිවාර්යයෙන්ම මාරු වෙන්න ඕනේ:
-            const response = await fetch('https://tharukasandun35-rashtha-ai-backend.hf.space/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: promptText })
-            });
+    <script>
+        async function generateResponse() {
+            const promptText = document.getElementById('promptInput').value.trim();
+            if (!promptText) { alert('කරුණාකර වීඩියෝව සඳහා විස්තරයක් ලියන්න!'); return; }
 
-            if (!response.ok) throw new Error('Network error');
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loadingText');
+            const resultBox = document.getElementById('resultBox');
+            const aiVideo = document.getElementById('aiVideo');
 
-            const data = await response.json();
-            
-            if (data.reply) {
-                // වීඩියෝ එකක් වෙනුවට පිළිතුර පෙන්වීමට
-                document.getElementById('videoLink').innerText = data.reply;
-                resultBox.style.display = 'block';
-            } else {
-                alert('පිළිතුරක් ලැබුණේ නැහැ!');
+            btn.disabled = true;
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
+
+            try {
+                // මෙතන අලුත්ම /generate-video පාර (Path) එක නිවැරදිව දමා ඇත
+                const response = await fetch('https://tharukasandun35-rashtha-ai-backend.hf.space/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptText })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === "success" && data.video_url) {
+                    aiVideo.src = data.video_url;
+                    resultBox.style.display = 'block';
+                } else {
+                    alert('සමාවන්න, වීඩියෝව සෙවීමේදී දෝෂයක් සිදු විය.');
+                }
+            } catch (error) {
+                alert('සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය!');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
             }
-        } catch (error) {
-            console.error(error);
-            alert('සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය!');
-        } finally {
-            btn.disabled = false;
-            loading.style.display = 'none';
         }
-    }
-</script>
+    </script>
+</body>
+</html>
