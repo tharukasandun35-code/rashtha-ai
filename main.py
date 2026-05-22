@@ -15,9 +15,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔐 Key එක කෙලින්ම දාන්නේ නැතුව සර්වර් එකෙන් ගන්නවා (ආරක්ෂිතයි)
+# 🔐 API Keys සහ Model එක
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 GROQ_MODEL = "llama-3.3-70b-versatile" 
+
+# 🌟 කැඩෙන්නේ නැති සුපිරිම HD වීඩියෝ සපයන Pexels API Key එක
+PEXELS_API_KEY = "563492ad6f91700001000001bc49045330364e0a96996d99efeb97e2"
 
 class PromptRequest(BaseModel):
     prompt: str
@@ -58,26 +61,28 @@ async def generate_video(request: PromptRequest):
     except Exception as e:
         print(f"Error with Groq: {e}")
 
-    video_search_url = f"https://pixabay.com/api/videos/?key=43936413-5a04ba3b6107bdbe8b7b252df&q={requests.utils.quote(english_prompt)}&per_page=5"
+    # 🎬 Pexels API එක හරහා සිරාම වීඩියෝ සෙවීම
+    video_search_url = f"https://api.pexels.com/videos/search?query={requests.utils.quote(english_prompt)}&per_page=5"
+    pexels_headers = {"Authorization": PEXELS_API_KEY}
     
-    # 🌟 Backup HD වීඩියෝ ලින්ක් එක
+    # 🌟 කිසිම වෙලාවක කළු පාට නොවී ප්ලේ වෙන්න දාපු සිරාම Backup HD වීඩියෝ එකක්
     actual_video_url = "https://assets.mixkit.co/videos/preview/mixkit-beautiful-aerial-view-of-a-forest-and-river-42823-large.mp4"
     
     try:
-        video_resp = requests.get(video_search_url).json()
-        if video_resp.get('hits') and len(video_resp['hits']) > 0:
-            for hit in video_resp['hits']:
-                videos_dict = hit.get('videos', {})
-                for size in ['medium', 'small', 'large']:
-                    if size in videos_dict and videos_dict[size].get('url'):
-                        video_url_test = videos_dict[size]['url']
-                        if "vimeo" not in video_url_test.lower() and "cdn.pixabay.com" not in video_url_test.lower():
-                            actual_video_url = video_url_test
-                            break
-                if "vimeo" not in actual_video_url.lower():
+        video_resp = requests.get(video_search_url, headers=pexels_headers).json()
+        if video_resp.get('videos') and len(video_resp['videos']) > 0:
+            # පළමු වීඩියෝව තෝරාගෙන එහි වැඩ කරන mp4 ලින්ක් එකක් ගන්නවා
+            first_video = video_resp['videos'][0]
+            video_files = first_video.get('video_files', [])
+            
+            for video_file in video_files:
+                # හොඳම HD හෝ SD mp4 ලින්ක් එකක් තෝරාගැනීම
+                if video_file.get('file_type') == "video/mp4" or ".mp4" in video_file.get('link', ''):
+                    actual_video_url = video_file.get('link')
+                    print(f"✅ Successfully found working Pexels URL: {actual_video_url}")
                     break
     except Exception as e:
-        print(f"Error fetching video: {e}")
+        print(f"Error fetching video from Pexels: {e}")
 
     return {
         "status": "success",
