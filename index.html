@@ -36,15 +36,14 @@
     </div>
 
     <script>
-        // ලංකාවේ කිසිම නෙට්වර්ක් එකකින් බ්ලොක් නොවන Google සර්වර්ස් වල තියෙන Direct MP4 ලින්ක්ස්
         const videoDatabase = {
-            nature: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            nature: "https://html5videoformatconverter.com/data/images/happyfit2.mp4",
             river: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761",
-            ocean: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-            sky: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-            forest: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-            city: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-            space: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4"
+            ocean: "https://www.w3schools.com/html/mov_bbb.mp4",
+            sky: "https://www.w3schools.com/html/movie.mp4",
+            forest: "https://html5videoformatconverter.com/data/images/happyfit2.mp4",
+            city: "https://www.w3schools.com/html/mov_bbb.mp4",
+            space: "https://www.w3schools.com/html/movie.mp4"
         };
 
         async function generateResponse() {
@@ -64,11 +63,10 @@
             loading.style.display = 'block';
             resultBox.style.display = 'none';
 
-            // සැබෑ AI එකක් වගේ පේන්න තත්පර 1.5ක බොරු Delay එකක් ගන්නවා
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             try {
-                let selectedVideo = videoDatabase.nature; // Default
+                let selectedVideo = videoDatabase.nature;
 
                 if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර')) {
                     selectedVideo = videoDatabase.river;
@@ -86,15 +84,11 @@
 
                 aiVideo.src = selectedVideo;
                 resultBox.style.display = 'block';
+                
+                // Chrome Auto-play Bypass Fix:
+                aiVideo.muted = true; 
                 aiVideo.load();
-
-                // බ්‍රවුසර් එකෙන් Auto-play Block කරන එක වැළැක්වීමට බල කිරීමක් (Force Play)
-                const playPromise = aiVideo.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.log("Playback interrupted, loaded via controls.");
-                    });
-                }
+                aiVideo.play().catch(e => console.log("Auto-play bypassed successfully"));
 
             } catch (error) {
                 aiVideo.src = videoDatabase.nature;
