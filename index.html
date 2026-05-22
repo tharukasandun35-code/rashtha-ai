@@ -36,20 +36,23 @@
 
     <script>
         async function generateResponse() {
-            const promptText = document.getElementById('promptInput').value.trim();
-            if (!promptText) { alert('කරුණාකර වීඩියෝව සඳහා විස්තරයක් ලියන්න!'); return; }
-
+            const promptInput = document.getElementById('promptInput');
             const btn = document.getElementById('generateBtn');
             const loading = document.getElementById('loadingText');
             const resultBox = document.getElementById('resultBox');
             const aiVideo = document.getElementById('aiVideo');
+
+            const promptText = promptInput.value.trim();
+            if (!promptText) { 
+                alert('කරුණාකර වීඩියෝව සඳහා විස්තරයක් ලියන්න!'); 
+                return; 
+            }
 
             btn.disabled = true;
             loading.style.display = 'block';
             resultBox.style.display = 'none';
 
             try {
-                // ⚠️ Hugging Face direct space URL එක පිටතින් කතා කිරීම සඳහා 'embed' ලින්ක් එක භාවිතා කර ඇත.
                 const response = await fetch('https://tharukasandun35-rashtha-ai-backend.hf.space/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -59,16 +62,14 @@
                 const data = await response.json();
                 
                 if (data.status === "success" && data.video_url) {
-                    // වීඩියෝ ලින්ක් එකද embed එකක් හරහා stream විය යුතුය
                     aiVideo.src = data.video_url;
                     resultBox.style.display = 'block';
                     aiVideo.load();
-                    aiVideo.play().catch(e => console.log("Autoplay blocked:", e));
                 } else {
                     alert('සමාවන්න, වීඩියෝව සෙවීමේදී දෝෂයක් සිදු විය.');
                 }
             } catch (error) {
-                alert('සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය! (Hugging Face Backend එක 'Running' තත්වයේ ඇත්දැයි බලන්න)');
+                alert('සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය!');
                 console.error(error);
             } finally {
                 btn.disabled = false;
