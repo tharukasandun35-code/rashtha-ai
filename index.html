@@ -36,15 +36,15 @@
     </div>
 
     <script>
-        // කිසිම API Key එකක් ඕනෙ නැති, හැමදාම වැඩ කරන ලස්සන ස්ටේබල් වීඩියෝ ලින්ක්ස් ටිකක්
+        // ලෝකයේ කිසිම රටක/නෙට්වර්ක් එකක බ්ලොක් නොවන Google සහ Wikimedia සර්වර් ලින්ක්ස්
         const videoDatabase = {
-            nature: "https://v1.cdnpk.net/videvo_files/video/free/2014-12/large_watermarked/Raindrops_Videvo_preview.mp4",
+            nature: "https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_screener_nature_scene.ogv/Sintel_movie_screener_nature_scene.ogv.360p.vp9.webm",
             river: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761",
-            ocean: "https://v1.cdnpk.net/videvo_files/video/free/2019-11/large_watermarked/190828_27_Superb%20Beach%20Drone_1080p_preview.mp4",
-            sky: "https://v1.cdnpk.net/videvo_files/video/free/2015-08/large_watermarked/4k0070_preview.mp4",
-            forest: "https://v1.cdnpk.net/videvo_files/video/free/2014-08/large_watermarked/Sunbeams_Through_Trees_Videvo_preview.mp4",
-            city: "https://v1.cdnpk.net/videvo_files/video/free/2019-01/large_watermarked/181015_12_Berlins-Streets-at-Night_1080p_preview.mp4",
-            space: "https://v1.cdnpk.net/videvo_files/video/free/video_preview/g002_preview.mp4"
+            ocean: "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/87/Sea_waves_crashing_on_rocks.ogv/Sea_waves_crashing_on_rocks.ogv.480p.vp9.webm",
+            sky: "https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d3/Timelapse_of_clouds_in_blue_sky.ogv/Timelapse_of_clouds_in_blue_sky.ogv.480p.vp9.webm",
+            forest: "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b3/Walking_through_a_green_forest.ogv/Walking_through_a_green_forest.ogv.480p.vp9.webm",
+            city: "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/18/Tokyo_Night_Traffic_Timelapse.ogv/Tokyo_Night_Traffic_Timelapse.ogv.480p.vp9.webm",
+            space: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" // Stable Google Video
         };
 
         async function generateResponse() {
@@ -64,24 +64,24 @@
             loading.style.display = 'block';
             resultBox.style.display = 'none';
 
-            // සර්වර් එක ලෝඩ් වෙනවා වගේ පේන්න තත්පර 2ක බොරු වෙලාවක් (Fake Delay) ගන්නවා
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // සැබෑ AI එකක් වගේ පේන්න තත්පර 1.5ක Fake Delay එකක් ගන්නවා
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             try {
                 let selectedVideo = videoDatabase.nature; // Default වීඩියෝව
 
                 // යූසර් ගහන සිංහල/ඉංග්‍රීසි වචන අනුව ගැලපෙන වීඩියෝව තෝරනවා
-                if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර')) {
+                if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර') || promptText.includes('ඇළ')) {
                     selectedVideo = videoDatabase.river;
-                } else if (promptText.includes('මුහුද') || promptText.includes('ocean') || promptText.includes('වෙරළ')) {
+                } else if (promptText.includes('මුහුද') || promptText.includes('ocean') || promptText.includes('වෙරළ') || promptText.includes('රළ')) {
                     selectedVideo = videoDatabase.ocean;
                 } else if (promptText.includes('අහස') || promptText.includes('sky') || promptText.includes('වලාකුළු')) {
                     selectedVideo = videoDatabase.sky;
-                } else if (promptText.includes('කැලෑ') || promptText.includes('forest') || promptText.includes('ගස්')) {
+                } else if (promptText.includes('කැලෑ') || promptText.includes('forest') || promptText.includes('ගස්') || promptText.includes('ලස්සන')) {
                     selectedVideo = videoDatabase.forest;
-                } else if (promptText.includes('නගර') || promptText.includes('city') || promptText.includes('පාර')) {
+                } else if (promptText.includes('නගර') || promptText.includes('city') || promptText.includes('පාර') || promptText.includes('වාහන')) {
                     selectedVideo = videoDatabase.city;
-                } else if (promptText.includes('අවකාශ') || promptText.includes('space') || promptText.includes('තරු')) {
+                } else if (promptText.includes('අවකාශ') || promptText.includes('space') || promptText.includes('තරු') || promptText.includes('සාවා')) {
                     selectedVideo = videoDatabase.space;
                 }
 
@@ -90,7 +90,6 @@
                 aiVideo.load();
 
             } catch (error) {
-                // කිසිම වෙලාවක ක්‍රෑෂ් වෙන්න නොදී සොබාදහම් වීඩියෝව ප්ලේ කරවනවා
                 aiVideo.src = videoDatabase.nature;
                 resultBox.style.display = 'block';
                 aiVideo.load();
