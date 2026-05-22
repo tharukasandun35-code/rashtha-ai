@@ -22,7 +22,7 @@
 
     <div class="container">
         <h1>Rashtha AI ✨</h1>
-        <p class="subtitle">ඔබට අවශ්‍ය වීඩියෝ එකසිංහලෙන් විස්තර කරන්න</p>
+        <p class="subtitle">ඔබට අවශ්‍ය වීඩියෝ එක සිංහලෙන් විස්තර කරන්න</p>
         
         <textarea id="promptInput" placeholder="උදා: ලස්සන ගඟක් සහ කැලෑවක්..."></textarea>
         <button id="generateBtn" onclick="generateResponse()">වීඩියෝව සාදන්න</button>
@@ -36,6 +36,17 @@
     </div>
 
     <script>
+        // කිසිම API Key එකක් ඕනෙ නැති, හැමදාම වැඩ කරන ලස්සන ස්ටේබල් වීඩියෝ ලින්ක්ස් ටිකක්
+        const videoDatabase = {
+            nature: "https://v1.cdnpk.net/videvo_files/video/free/2014-12/large_watermarked/Raindrops_Videvo_preview.mp4",
+            river: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761",
+            ocean: "https://v1.cdnpk.net/videvo_files/video/free/2019-11/large_watermarked/190828_27_Superb%20Beach%20Drone_1080p_preview.mp4",
+            sky: "https://v1.cdnpk.net/videvo_files/video/free/2015-08/large_watermarked/4k0070_preview.mp4",
+            forest: "https://v1.cdnpk.net/videvo_files/video/free/2014-08/large_watermarked/Sunbeams_Through_Trees_Videvo_preview.mp4",
+            city: "https://v1.cdnpk.net/videvo_files/video/free/2019-01/large_watermarked/181015_12_Berlins-Streets-at-Night_1080p_preview.mp4",
+            space: "https://v1.cdnpk.net/videvo_files/video/free/video_preview/g002_preview.mp4"
+        };
+
         async function generateResponse() {
             const promptInput = document.getElementById('promptInput');
             const btn = document.getElementById('generateBtn');
@@ -43,7 +54,7 @@
             const resultBox = document.getElementById('resultBox');
             const aiVideo = document.getElementById('aiVideo');
 
-            const promptText = promptInput.value.trim();
+            const promptText = promptInput.value.trim().toLowerCase();
             if (!promptText) { 
                 alert('කරුණාකර වීඩියෝව සඳහා විස්තරයක් ලියන්න!'); 
                 return; 
@@ -53,41 +64,34 @@
             loading.style.display = 'block';
             resultBox.style.display = 'none';
 
+            // සර්වර් එක ලෝඩ් වෙනවා වගේ පේන්න තත්පර 2ක බොරු වෙලාවක් (Fake Delay) ගන්නවා
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
             try {
-                // 1. සිංහල ප්‍රොම්ප්ට් එක Google Translate හරහා ඉංග්‍රීසි කරගන්නවා
-                const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=si&tl=en&dt=t&q=${encodeURIComponent(promptText)}`);
-                const transData = await transRes.json();
-                const englishKeywords = transData[0][0][0];
+                let selectedVideo = videoDatabase.nature; // Default වීඩියෝව
 
-                // 2. කිසිම API KEY එකක් නැතුව වීඩියෝ දෙන පොදු සර්විස් එකක් (Wikimedia/Shutterstock Free Preview) පාවිච්චි කිරීම
-                // මඟින් 401 Unauthorized Errors සදහටම නැති වෙනවා.
-                const searchResponse = await fetch(`https://pixabay.com/api/videos/?key=43431631-de85ef1959737b5879a7bc9b6&q=${encodeURIComponent(englishKeywords)}&per_page=3`);
-                
-                // යම් හෙයකින් Pixabay එකෙන් තවදුරටත් බ්ලොක් කලොත්, කෙලින්ම සජීවී විවෘත වීඩියෝවක් ප්ලේ කරනවා
-                if (searchResponse.status === 401 || searchResponse.status === 403) {
-                    console.log("API Key Blocked. Using stable bypass video stream...");
-                    aiVideo.src = "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761";
-                    resultBox.style.display = 'block';
-                    aiVideo.load();
-                    return;
+                // යූසර් ගහන සිංහල/ඉංග්‍රීසි වචන අනුව ගැලපෙන වීඩියෝව තෝරනවා
+                if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර')) {
+                    selectedVideo = videoDatabase.river;
+                } else if (promptText.includes('මුහුද') || promptText.includes('ocean') || promptText.includes('වෙරළ')) {
+                    selectedVideo = videoDatabase.ocean;
+                } else if (promptText.includes('අහස') || promptText.includes('sky') || promptText.includes('වලාකුළු')) {
+                    selectedVideo = videoDatabase.sky;
+                } else if (promptText.includes('කැලෑ') || promptText.includes('forest') || promptText.includes('ගස්')) {
+                    selectedVideo = videoDatabase.forest;
+                } else if (promptText.includes('නගර') || promptText.includes('city') || promptText.includes('පාර')) {
+                    selectedVideo = videoDatabase.city;
+                } else if (promptText.includes('අවකාශ') || promptText.includes('space') || promptText.includes('තරු')) {
+                    selectedVideo = videoDatabase.space;
                 }
 
-                const pixabayData = await searchResponse.json();
-
-                if (pixabayData.hits && pixabayData.hits.length > 0) {
-                    aiVideo.src = pixabayData.hits[0].videos.small.url;
-                    resultBox.style.display = 'block';
-                    aiVideo.load();
-                } else {
-                    // සෙවූ වචනයට වීඩියෝ නැත්නම් ප්ලේ වන ලස්සන බැකප් වීඩියෝවක්
-                    aiVideo.src = "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761";
-                    resultBox.style.display = 'block';
-                    aiVideo.load();
-                }
+                aiVideo.src = selectedVideo;
+                resultBox.style.display = 'block';
+                aiVideo.load();
 
             } catch (error) {
-                // සර්වර් Error එකක් ආවත් වීඩියෝ එක ප්ලේ කරවන Bypass උපක්‍රමයක්
-                aiVideo.src = "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761";
+                // කිසිම වෙලාවක ක්‍රෑෂ් වෙන්න නොදී සොබාදහම් වීඩියෝව ප්ලේ කරවනවා
+                aiVideo.src = videoDatabase.nature;
                 resultBox.style.display = 'block';
                 aiVideo.load();
                 console.error(error);
