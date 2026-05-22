@@ -36,15 +36,15 @@
     </div>
 
     <script>
-        // ලෝකයේ කිසිම රටක/නෙට්වර්ක් එකක බ්ලොක් නොවන Google සහ Wikimedia සර්වර් ලින්ක්ස්
+        // ලංකාවේ කිසිම නෙට්වර්ක් එකකින් බ්ලොක් නොවන Google සර්වර්ස් වල තියෙන Direct MP4 ලින්ක්ස්
         const videoDatabase = {
-            nature: "https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_screener_nature_scene.ogv/Sintel_movie_screener_nature_scene.ogv.360p.vp9.webm",
+            nature: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             river: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761",
-            ocean: "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/87/Sea_waves_crashing_on_rocks.ogv/Sea_waves_crashing_on_rocks.ogv.480p.vp9.webm",
-            sky: "https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d3/Timelapse_of_clouds_in_blue_sky.ogv/Timelapse_of_clouds_in_blue_sky.ogv.480p.vp9.webm",
-            forest: "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b3/Walking_through_a_green_forest.ogv/Walking_through_a_green_forest.ogv.480p.vp9.webm",
-            city: "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/18/Tokyo_Night_Traffic_Timelapse.ogv/Tokyo_Night_Traffic_Timelapse.ogv.480p.vp9.webm",
-            space: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" // Stable Google Video
+            ocean: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            sky: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            forest: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            city: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            space: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4"
         };
 
         async function generateResponse() {
@@ -64,24 +64,23 @@
             loading.style.display = 'block';
             resultBox.style.display = 'none';
 
-            // සැබෑ AI එකක් වගේ පේන්න තත්පර 1.5ක Fake Delay එකක් ගන්නවා
+            // සැබෑ AI එකක් වගේ පේන්න තත්පර 1.5ක බොරු Delay එකක් ගන්නවා
             await new Promise(resolve => setTimeout(resolve, 1500));
 
             try {
-                let selectedVideo = videoDatabase.nature; // Default වීඩියෝව
+                let selectedVideo = videoDatabase.nature; // Default
 
-                // යූසර් ගහන සිංහල/ඉංග්‍රීසි වචන අනුව ගැලපෙන වීඩියෝව තෝරනවා
-                if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර') || promptText.includes('ඇළ')) {
+                if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර')) {
                     selectedVideo = videoDatabase.river;
-                } else if (promptText.includes('මුහුද') || promptText.includes('ocean') || promptText.includes('වෙරළ') || promptText.includes('රළ')) {
+                } else if (promptText.includes('මුහුද') || promptText.includes('ocean') || promptText.includes('වෙරළ')) {
                     selectedVideo = videoDatabase.ocean;
                 } else if (promptText.includes('අහස') || promptText.includes('sky') || promptText.includes('වලාකුළු')) {
                     selectedVideo = videoDatabase.sky;
                 } else if (promptText.includes('කැලෑ') || promptText.includes('forest') || promptText.includes('ගස්') || promptText.includes('ලස්සන')) {
                     selectedVideo = videoDatabase.forest;
-                } else if (promptText.includes('නගර') || promptText.includes('city') || promptText.includes('පාර') || promptText.includes('වාහන')) {
+                } else if (promptText.includes('නගර') || promptText.includes('city') || promptText.includes('පාර')) {
                     selectedVideo = videoDatabase.city;
-                } else if (promptText.includes('අවකාශ') || promptText.includes('space') || promptText.includes('තරු') || promptText.includes('සාවා')) {
+                } else if (promptText.includes('අවකාශ') || promptText.includes('space') || promptText.includes('තරු')) {
                     selectedVideo = videoDatabase.space;
                 }
 
@@ -89,11 +88,18 @@
                 resultBox.style.display = 'block';
                 aiVideo.load();
 
+                // බ්‍රවුසර් එකෙන් Auto-play Block කරන එක වැළැක්වීමට බල කිරීමක් (Force Play)
+                const playPromise = aiVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Playback interrupted, loaded via controls.");
+                    });
+                }
+
             } catch (error) {
                 aiVideo.src = videoDatabase.nature;
                 resultBox.style.display = 'block';
                 aiVideo.load();
-                console.error(error);
             } finally {
                 btn.disabled = false;
                 loading.style.display = 'none';
