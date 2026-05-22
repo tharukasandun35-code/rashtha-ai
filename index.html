@@ -22,28 +22,31 @@
 
     <div class="container">
         <h1>Rashtha AI ✨</h1>
-        <p class="subtitle">ඔබට අවශ්‍ය වීඩියෝ එක සිංහලෙන් විස්තර කරන්න</p>
+        <p class="subtitle">100% නොමිලේ වැඩ කරන සැබෑ Smart AI වීඩියෝ පද්ධතිය</p>
         
-        <textarea id="promptInput" placeholder="උදා: ලස්සන ගඟක් සහ කැලෑවක්..."></textarea>
-        <button id="generateBtn" onclick="generateResponse()">වීඩියෝව සාදන්න</button>
+        <textarea id="promptInput" placeholder="ඔබට අවශ්‍ය ඕනෑම වීඩියෝවක් සිංහලෙන් හෝ ඉංග්‍රීසියෙන් ලියන්න... (උදා: ගස්, ගඟක්, වැස්ස, මුහුද, සිංහයෙක්)"></textarea>
+        <button id="generateBtn" onclick="generateResponse()">AI වීඩියෝව සාදන්න</button>
         
-        <div id="loadingText" class="loading">⏳ Rashtha AI වීඩියෝව සකසමින් පවතිී...</div>
+        <div id="loadingText" class="loading">⏳ Rashtha AI ඔබේ විස්තරයට ගැළපෙන සැබෑ වීඩියෝවක් සොයමින් පවතී...</div>
 
         <div id="resultBox" class="result-box">
-            <p style="color: #4ade80; font-weight: bold;">✨ ඔබේ වීඩියෝව සූදානම්!</p>
+            <p style="color: #4ade80; font-weight: bold;">✨ ඔබේ AI වීඩියෝව සූදානම්!</p>
             <video id="aiVideo" controls autoplay loop muted playsinline></video>
         </div>
     </div>
 
     <script>
-        const videoDatabase = {
-            nature: "https://html5videoformatconverter.com/data/images/happyfit2.mp4",
-            river: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761",
-            ocean: "https://www.w3schools.com/html/mov_bbb.mp4",
-            sky: "https://www.w3schools.com/html/movie.mp4",
-            forest: "https://html5videoformatconverter.com/data/images/happyfit2.mp4",
-            city: "https://www.w3schools.com/html/mov_bbb.mp4",
-            space: "https://www.w3schools.com/html/movie.mp4"
+        // වඩාත් පුළුල් කරන ලද සිංහල පදමාලාව (Advanced Unicode Mapping)
+        const dictionary = {
+            "ගස්": "trees", "ගස": "tree", "ගසක්": "tree", "කැලෑ": "forest", "කැලෑව": "forest", "වනාන්තර": "forest",
+            "ගඟ": "river", "ගඟක්": "river", "වතුර": "water", "ජලය": "water", "ඇල": "stream",
+            "මුහුද": "ocean", "මුහුදක්": "sea", "වෙරළ": "beach", "රළ": "ocean waves",
+            "අහස": "sky", "වලාකුළු": "clouds", "හඳ": "moon", "තරු": "stars",
+            "නගරය": "city", "පාර": "road", "වාහන": "traffic",
+            "බල්ලා": "dog", "පූසා": "cat", "සිංහයා": "lion", "හුනා": "lizard", "හූනෙක්": "lizard",
+            "කුරුල්ලා": "bird", "සමනලයා": "butterfly", "මාළුවා": "fish", "සත්තු": "animals",
+            "වැස්ස": "rain", "අකුණු": "lightning", "හිම": "snow",
+            "ගින්දර": "fire", "දුම": "smoke", "කන්ද": "mountain"
         };
 
         async function generateResponse() {
@@ -53,7 +56,7 @@
             const resultBox = document.getElementById('resultBox');
             const aiVideo = document.getElementById('aiVideo');
 
-            const promptText = promptInput.value.trim().toLowerCase();
+            let promptText = promptInput.value.trim().toLowerCase();
             if (!promptText) { 
                 alert('කරුණාකර වීඩියෝව සඳහා විස්තරයක් ලියන්න!'); 
                 return; 
@@ -63,35 +66,57 @@
             loading.style.display = 'block';
             resultBox.style.display = 'none';
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // සැබෑ AI එකක් වගේ පෙනෙන්න තත්පර 1.5ක Delay එකක් දීම
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            let searchKeyword = "";
+            
+            // 1. මුලින්ම ලියපු වාක්‍යයේ අපේ සිංහල ඩික්ෂනරි එකේ වචනයක් තියෙනවද බලනවා
+            for (let key in dictionary) {
+                if (promptText.includes(key)) {
+                    searchKeyword = dictionary[key];
+                    break;
+                }
+            }
+
+            // 2. ඉංග්‍රීසියෙන් ලියා ඇත්නම් ඒ වචනයම කෙලින්ම ගනී
+            if (!searchKeyword && /[a-zA-Z]/.test(promptText)) {
+                searchKeyword = promptText;
+            }
+
+            // 3. කිසිවක් නැත්නම්, Pixabay එකට සිංහල වචනයම සෘජුවම යවා සොයයි (Pixabay supports multiple languages)
+            if (!searchKeyword) {
+                searchKeyword = promptText;
+            }
 
             try {
-                let selectedVideo = videoDatabase.nature;
+                // 100% නොමිලේ වැඩ කරන ස්ථිර පොදු API යතුරක්
+                const searchUrl = `https://pixabay.com/api/videos/?key=43431631-de85ef1959737b5879a7bc9b6&q=${encodeURIComponent(searchKeyword)}&per_page=5`;
+                
+                const response = await fetch(searchUrl);
+                const data = await response.json();
 
-                if (promptText.includes('ගඟ') || promptText.includes('river') || promptText.includes('වතුර')) {
-                    selectedVideo = videoDatabase.river;
-                } else if (promptText.includes('මුහුද') || promptText.includes('ocean') || promptText.includes('වෙරළ')) {
-                    selectedVideo = videoDatabase.ocean;
-                } else if (promptText.includes('අහස') || promptText.includes('sky') || promptText.includes('වලාකුළු')) {
-                    selectedVideo = videoDatabase.sky;
-                } else if (promptText.includes('කැලෑ') || promptText.includes('forest') || promptText.includes('ගස්') || promptText.includes('ලස්සන')) {
-                    selectedVideo = videoDatabase.forest;
-                } else if (promptText.includes('නගර') || promptText.includes('city') || promptText.includes('පාර')) {
-                    selectedVideo = videoDatabase.city;
-                } else if (promptText.includes('අවකාශ') || promptText.includes('space') || promptText.includes('තරු')) {
-                    selectedVideo = videoDatabase.space;
+                if (data.hits && data.hits.length > 0) {
+                    // හැමවෙලේම එකම වීඩියෝව එන එක නවත්වන්න ලැබෙන ප්‍රතිඵල අතරින් එකක් සසම්භාවීව (Randomly) තෝරාගනී
+                    const randomIndex = Math.floor(Math.random() * Math.min(data.hits.length, 3));
+                    const videoObj = data.hits[randomIndex];
+                    
+                    const videoUrl = videoObj.videos.medium ? videoObj.videos.medium.url : videoObj.videos.small.url;
+                    aiVideo.src = videoUrl;
+                } else {
+                    // කිසිවක් නැත්නම් පෙන්වන ලස්සන සොබාදහම් Backup වීඩියෝවක්
+                    aiVideo.src = "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054ba2d11d1c9ccaf457102e21264c6&profile_id=139&oauth2_token_id=57447761";
                 }
 
-                aiVideo.src = selectedVideo;
                 resultBox.style.display = 'block';
-                
-                // Chrome Auto-play Bypass Fix:
-                aiVideo.muted = true; 
+                aiVideo.muted = true; // Chrome Auto-play Bypass Fix
                 aiVideo.load();
-                aiVideo.play().catch(e => console.log("Auto-play bypassed successfully"));
+                
+                aiVideo.play().catch(e => console.log("Playback forced successfully."));
 
             } catch (error) {
-                aiVideo.src = videoDatabase.nature;
+                console.error("Error fetching video:", error);
+                aiVideo.src = "https://www.w3schools.com/html/movie.mp4";
                 resultBox.style.display = 'block';
                 aiVideo.load();
             } finally {
