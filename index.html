@@ -30,7 +30,7 @@
 
         <div id="resultBox" class="result-box">
             <p style="color: #4ade80; font-weight: bold;">✨ ඔබේ වීඩියෝව සූදානම්!</p>
-            <video id="aiVideo" controls autoplay loop muted playsinline crossorigin="anonymous"></video>
+            <video id="aiVideo" controls autoplay loop muted playsinline></video>
         </div>
     </div>
 
@@ -62,18 +62,9 @@
                 const data = await response.json();
                 
                 if (data.status === "success" && data.video_url) {
-                    // කෙලින්ම pexels ලින්ක් එක වීඩියෝ එකට සෙට් කරනවා
                     aiVideo.src = data.video_url;
                     resultBox.style.display = 'block';
                     aiVideo.load();
-                    
-                    // බ්‍රවුසර් එකෙන් බ්ලොක් නොකර ප්ලේ කරන්න බල කිරීමක්
-                    const playPromise = aiVideo.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(error => {
-                            console.log("Autoplay වැළැක්වුණා, කරුණාකර Play බටන් එක ඔබන්න:", error);
-                        });
-                    }
                 } else {
                     alert('සමාවන්න, වීඩියෝව සෙවීමේදී දෝෂයක් සිදු විය.');
                 }
