@@ -1,93 +1,83 @@
-import os
-import requests
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rashtha AI - AI Video Generator</title>
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2728.svg" type="image/svg+xml">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background-color: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 600px; text-align: center; }
+        h1 { color: #38bdf8; margin-bottom: 5px; font-size: 2.5rem; }
+        p.subtitle { color: #94a3b8; margin-bottom: 25px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 10px; border: 2px solid #334155; background-color: #0f172a; color: #fff; font-size: 16px; resize: none; box-sizing: border-box; margin-bottom: 20px; }
+        button { background: linear-gradient(135deg, #38bdf8, #3b82f6); color: white; border: none; padding: 14px 28px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; transition: transform 0.2s; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        .result-box { margin-top: 25px; display: none; background: #0f172a; padding: 15px; border-radius: 10px; text-align: center; }
+        video { width: 100%; border-radius: 8px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .loading { display: none; color: #e2e8f0; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-app = FastAPI()
+    <div class="container">
+        <h1>Rashtha AI ✨</h1>
+        <p class="subtitle">ඔබට අවශ්‍ය වීඩියෝ එක සිංහලෙන් විස්තර කරන්න</p>
+        
+        <textarea id="promptInput" placeholder="උදා: ලස්සන ගඟක් සහ කැලෑවක්..."></textarea>
+        <button id="generateBtn" onclick="generateResponse()">වීඩියෝව සාදන්න</button>
+        
+        <div id="loadingText" class="loading">⏳ Rashtha AI වීඩියෝව සකසමින් පවතිී...</div>
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        <div id="resultBox" class="result-box">
+            <p style="color: #4ade80; font-weight: bold;">✨ ඔබේ වීඩියෝව සූදානම්!</p>
+            <video id="aiVideo" controls autoplay loop muted playsinline></video>
+        </div>
+    </div>
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
-GROQ_MODEL = "llama-3.3-70b-versatile" 
-PEXELS_API_KEY = "563492ad6f91700001000001bc49045330364e0a96996d99efeb97e2"
+    <script>
+        async function generateResponse() {
+            const promptInput = document.getElementById('promptInput');
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loadingText');
+            const resultBox = document.getElementById('resultBox');
+            const aiVideo = document.getElementById('aiVideo');
 
-class PromptRequest(BaseModel):
-    prompt: str
+            const promptText = promptInput.value.trim();
+            if (!promptText) { 
+                alert('කරුණාකර වීඩියෝව සඳහා විස්තරයක් ලියන්න!'); 
+                return; 
+            }
 
-@app.get("/")
-async def read_root():
-    return FileResponse("index.html")
+            btn.disabled = true;
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
 
-# 🌟 මේක තමයි මැජික් එක: බ්‍රවුසර් එකට කෙලින්ම වීඩියෝ එක සර්වර් එක හරහා stream කරනවා (CORS එන්නේ නෑ)
-@app.get("/stream-video")
-async def stream_video(url: str):
-    try:
-        res = requests.get(url, stream=True)
-        return StreamingResponse(res.iter_content(chunk_size=1024*1024), media_type="video/mp4")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            try {
+                // Hugging Face Backend එකට කතා කරනවා
+                const response = await fetch('https://tharukasandun35-rashtha-ai-backend.hf.space/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptText })
+                });
 
-@app.post("/generate-video")
-async def generate_video(request: PromptRequest):
-    sinhala_prompt = request.prompt
-    
-    groq_url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    
-    groq_data = {
-        "model": GROQ_MODEL,
-        "messages": [
-            {
-                "role": "system", 
-                "content": "Translate the Sinhala video prompt into 1 or 2 simple English keywords for video searching. RESPOND ONLY WITH THE KEYWORDS. Example: 'හරකෙක් තණකොළ කනවා' -> 'cow grass'. No punctuation, no extra text."
-            },
-            {"role": "user", "content": sinhala_prompt}
-        ]
-    }
-    
-    english_prompt = "nature"
-    try:
-        response = requests.post(groq_url, json=groq_data, headers=headers)
-        result = response.json()
-        if 'choices' in result:
-            english_prompt = result['choices'][0]['message']['content'].strip().lower()
-    except Exception as e:
-        print(f"Error with Groq: {e}")
-
-    video_search_url = f"https://api.pexels.com/videos/search?query={requests.utils.quote(english_prompt)}&per_page=5"
-    pexels_headers = {"Authorization": PEXELS_API_KEY}
-    
-    # සුපිරි Backup වීඩියෝවක්
-    raw_video_url = "https://assets.mixkit.co/videos/preview/mixkit-beautiful-aerial-view-of-a-forest-and-river-42823-large.mp4"
-    
-    try:
-        video_resp = requests.get(video_search_url, headers=pexels_headers).json()
-        if video_resp.get('videos') and len(video_resp['videos']) > 0:
-            first_video = video_resp['videos'][0]
-            video_files = first_video.get('video_files', [])
-            
-            for video_file in video_files:
-                if video_file.get('file_type') == "video/mp4" or ".mp4" in video_file.get('link', ''):
-                    raw_video_url = video_file.get('link')
-                    break
-    except Exception as e:
-        print(f"Error fetching from Pexels: {e}")
-
-    # 🔗 බ්‍රවුසර් එකට කෙලින්ම යවන්නේ අපේ සර්වර් එකේ stream ලින්ක් එක!
-    safe_proxy_url = f"https://tharukasandun35-rashtha-ai-backend.hf.space/stream-video?url={requests.utils.quote(raw_video_url)}"
-
-    return {
-        "status": "success",
-        "video_url": safe_proxy_url
-    }
+                const data = await response.json();
+                
+                if (data.status === "success" && data.video_url) {
+                    aiVideo.src = data.video_url;
+                    resultBox.style.display = 'block';
+                    aiVideo.load();
+                } else {
+                    alert('සමාවන්න, වීඩියෝව සෙවීමේදී දෝෂයක් සිදු විය.');
+                }
+            } catch (error) {
+                alert('සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය!');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
